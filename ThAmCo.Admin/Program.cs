@@ -9,9 +9,11 @@ using ThAmCo.Admin.Data;
 using ThAmCo.Admin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var coreServiceBaseUrl = Environment.GetEnvironmentVariable("CoreServiceBaseUrl");
+DotNetEnv.Env.Load();
 // Add OpenAPI
 builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddControllers();
 
@@ -23,6 +25,18 @@ builder.Services
         options.Audience = builder.Configuration["Auth:Audience"];
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddHttpClient<CoreService>(client =>
+{
+    if (!string.IsNullOrEmpty(coreServiceBaseUrl))
+    {
+        client.BaseAddress = new Uri(coreServiceBaseUrl);
+    }
+    else
+    {
+        throw new Exception("CoreServiceBaseUrl is not configured in the .env file.");
+    }
+});
 
 // Configure Database Context with Isolation
 builder.Services.AddDbContext<AdminDbContext>(options =>

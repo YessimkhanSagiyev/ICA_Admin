@@ -7,35 +7,26 @@ namespace ThAmCo.Admin.Controllers
     [Route("api/admin")]
     public class AdminController : ControllerBase
     {
-        private readonly IAdminService _adminService;
+        private readonly CoreService _icaDevService;
 
-        public AdminController(IAdminService adminService)
-        {
-            _adminService = adminService;
-        }
+    public AdminController(CoreService icaDevService)
+    {
+        _icaDevService = icaDevService;
+    }
 
-        [HttpGet("users")]
-        public async Task<IActionResult> GetUsers()
-        {
-            var users = await _adminService.GetAllUsersAsync();
-            return Ok(users);
-        }
+    [HttpPost("change-order-status")]
+    public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] ChangeStatusRequest request)
+    {
+        await _icaDevService.ChangeOrderStatusAsync(request.OrderId, request.NewStatus);
+        return Ok("Order status updated by admin.");
+    }
 
-        [HttpPatch("orders/{id}/status")]
-        public async Task<IActionResult> ChangeOrderStatus(int id, [FromBody] string status)
-        {
-            var success = await _adminService.ChangeOrderStatusAsync(id, status);
-            if (!success) return NotFound();
-            return NoContent();
-        }
-
-        [HttpDelete("users/{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var success = await _adminService.DeleteUserAccountAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
-        }
+    [HttpDelete("delete-user/{userId}")]
+    public async Task<IActionResult> DeleteUserAccountAsync(Guid userId)
+    {
+        await _icaDevService.DeleteUserAccountAsync(userId);
+        return Ok("User account deleted by admin.");
+    }
 
     }
 }
