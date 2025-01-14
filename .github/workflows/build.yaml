@@ -1,51 +1,87 @@
-name: build
+name: CI/CD Pipeline for ThAmCo.Admin (.NET 9.0)
 
-on: [push]
-
-env:
-  DOTNET_VERSION: 9.0.x
-  BUILD_CONFIGURATION: Release
-  PROJECT_PATH: ./ThAmCo.Main   # set this to the directory path of your project
-  PUBLISH_PATH: ./myapp
-  TESTRESULTS_PATH: ./test-results
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Install dotnet
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup .NET 9.0
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Install dependencies
+          dotnet-version: '9.0'
+
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
         run: dotnet restore
-      - name: Build code
-        run: |
-          dotnet build \
-            --configuration $BUILD_CONFIGURATION \
-            --no-restore
-      - name: Run unit tests
-        run: |
-          dotnet test \
-            --configuration $BUILD_CONFIGURATION \
-            --no-build \
-            --logger trx \
-            --results-directory $TESTRESULTS_PATH
-      - name: Store test results
+
+      # Step 4: Build the Solution
+      - name: Build Solution
+        run: dotnet build --no-restore --configuration Release --warnaserror
+        continue-on-error: false 
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup .NET 9.0
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0'
+
+      # Step 3: Run Tests
+      - name: Run Tests
+        run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test_results.trx"
+
+      # Step 4: Upload Test Results (Optional)
+      - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
           name: test-results
-          path: ${{ env.TESTRESULTS_PATH }}
-        if: ${{ always() }} # ensures test results uploaded even after failure
-      - name: Package build
-        run: |
-          dotnet publish $PROJECT_PATH \
-            --configuration $BUILD_CONFIGURATION \
-            --no-build \
-            --output $PUBLISH_PATH
-      - name: Store build artefact
-        uses: actions/upload-artifact@v3
+          path: ThAmCo.Admin.Test/TestResults/*.trx
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup .NET 9.0
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
         with:
-          name: build
-          path: ${{ env.PUBLISH_PATH }}
+          dotnet-version: '9.0'
+
+      # Step 3: Publish the Application
+      - name: Publish Application
+        run: dotnet publish --configuration Release -o ./publish
+
+      # Step 4: Deploy to Azure App Service
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'ThAmCoAdmin' 
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
