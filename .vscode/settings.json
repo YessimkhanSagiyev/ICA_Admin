@@ -1,3 +1,5 @@
 {
-    "dotnet.defaultSolution": "ThAmCo.sln"
+    "dotnet.defaultSolution": "ThAmCo.sln",
+    "appService.preDeployTask": "publish-release",
+    "appService.deploySubpath": "ThAmCo.Admin/bin/Release/net9.0/publish"
 }
