@@ -23,7 +23,7 @@ namespace ThAmCo.Admin.Services
             return await _dbContext.Users.ToListAsync();
         }
 
-        public async Task<Order> MarkOrderAsDispatchedAsync(int orderId, DateTime dispatchedDate)
+        public async Task<Order?> MarkOrderAsDispatchedAsync(int orderId, DateTime dispatchedDate)
         {
             var order = await _dbContext.Orders.FindAsync(orderId);
             if (order != null)
@@ -32,7 +32,7 @@ namespace ThAmCo.Admin.Services
                 _dbContext.Orders.Update(order);
                 await _dbContext.SaveChangesAsync();
             }
-            return order;
+            return order; // Allow nullable return
         }
 
         public async Task<bool> DeleteUserAccountAsync(int userId)

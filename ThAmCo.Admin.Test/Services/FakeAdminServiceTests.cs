@@ -9,12 +9,11 @@ namespace ThAmCo.Admin.Test.Services
     [TestClass]
     public class FakeAdminServiceTests
     {
-        private FakeAdminService _fakeService;
+        private FakeAdminService _fakeService = null!; 
 
         [TestInitialize]
         public void Setup()
         {
-            // Initialize the FakeAdminService before each test
             _fakeService = new FakeAdminService();
         }
 

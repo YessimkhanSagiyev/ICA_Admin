@@ -28,7 +28,7 @@ namespace ThAmCo.Admin.Services
             return Task.FromResult(_users.AsEnumerable());
         }
 
-        public Task<Order> MarkOrderAsDispatchedAsync(int orderId, DateTime dispatchedDate)
+        public Task<Order?> MarkOrderAsDispatchedAsync(int orderId, DateTime dispatchedDate)
         {
             var order = _orders.FirstOrDefault(o => o.Id == orderId);
             if (order != null)
@@ -36,7 +36,7 @@ namespace ThAmCo.Admin.Services
                 order.DispatchDate = dispatchedDate;
                 order.Status = "Dispatched";
             }
-            return Task.FromResult(order);
+            return Task.FromResult(order); // Allow nullable return
         }
 
         public Task<bool> DeleteUserAccountAsync(int userId)
