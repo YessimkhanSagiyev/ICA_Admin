@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for ThAmCo.Admin (.NET 9.0)
+name: CI/CD Pipeline for ThAmCoAdmin (.NET 9.0)
 
 on:
   push:
@@ -13,17 +13,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: Setup .NET Core
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0'
 
+      # Step 3: Install Dependencies
       - name: Install Dependencies
         run: dotnet restore
 
+      # Step 4: Build the Solution
       - name: Build Solution
         run: dotnet build --configuration Release --no-restore
 
@@ -32,17 +36,21 @@ jobs:
     needs: build
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: Setup .NET Core
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0'
 
+      # Step 3: Run Tests
       - name: Run Tests
         run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test_results.trx"
 
+      # Step 4: Upload Test Results (Optional)
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
@@ -54,21 +62,24 @@ jobs:
     needs: test
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: Setup .NET Core
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0'
 
+      # Step 3: Publish the Application
       - name: Publish Application
         run: dotnet publish --configuration Release -o ./publish
 
+      # Step 4: Deploy to Azure App Service
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'ThAmCo-Admin-Service'
-          slot-name: 'production'
+          app-name: 'ThAmCoAdmin' 
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
